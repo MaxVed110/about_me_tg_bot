@@ -1,11 +1,25 @@
-import asyncio
-from aiogram import Bot, Dispatcher, types, F, Router
-from aiogram.filters.command import Command
+import speech_recognition as sr
 
-# from config_bot import config
+from aiogram import types, F, Router
+from aiogram.filters.command import Command
 from aiogram.types import FSInputFile
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 router = Router()
+
+
+# заготовка для честной обработки гс
+# r = sr.Recognizer()
+# def recognise(filename):
+#     with sr.AudioFile(filename) as source:
+#         audio_text = r.listen(source)
+#         try:
+#             text = r.recognize_google(audio_text, language='ru_Ru')
+#             print(text)
+#             return text
+#         except Exception:
+#             print('Sorry.. run again...')
+#             return "Sorry.. run again..."
 
 
 # приветственное сообщение
@@ -17,22 +31,29 @@ async def start_command(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True)
-    await message.answer('Привет!', reply_markup=keyboard)
+    text = 'Привет! Этот бот создан для тестового задания Яндекс в целях знакомства со мной\n\n' \
+           'Чтобы узнать его возможности - нажми на кнопку "Инструкция"'
+    await message.answer(text, reply_markup=keyboard)
 
 
 # инструкция
 @router.message(F.text.lower() == "инструкция")
 async def instruction(message: types.Message):
-    text = 'инструкция и доступные команды на фотки и текст'
-    kb = [
-        [types.KeyboardButton(text="Что такое ChatGPT"),
-         types.KeyboardButton(text="Отличие SQL от NoSQL"),
-         types.KeyboardButton(text="Ода о первой любви")],
-    ]
-    keyboard = types.ReplyKeyboardMarkup(
-        keyboard=kb,
-        resize_keyboard=True)
-    await message.answer("Отличный выбор!", reply_markup=keyboard)
+    text = 'Для получения информации, представленной на кнопках - жми на кнопки.\n' \
+           'Для получения дополнительной информации воспользуйся следующими кнопками:\n' \
+           '/selfie - посмотреть последнее селфи \n' \
+           '/school - посмотреть фото в старших классах \n' \
+           '/hobby - почитать историю о хобби \n' \
+           'Для получения ссылки на репо с исходным кодом отправь голосовое сообщение со словом\n' \
+           '"исходники"'
+
+    builder = ReplyKeyboardBuilder()
+    builder.row(types.KeyboardButton(text="Что такое ChatGPT"),
+                types.KeyboardButton(text="Отличие SQL от NoSQL"),
+                types.KeyboardButton(text="Ода о первой любви"))
+    builder.row(types.KeyboardButton(text="Инструкция"))
+
+    await message.answer(text, reply_markup=builder.as_markup(resize_keyboard=True))
 
 
 # Посмотреть селфи
@@ -43,7 +64,7 @@ async def upload_photo(message: types.Message):
 
 
 # Посмотреть фотку из школы
-@router.message(Command('shool'))
+@router.message(Command('school'))
 async def upload_photo(message: types.Message):
     image = FSInputFile("./photo/school.jpg")
     await message.answer_photo(image)
@@ -52,33 +73,38 @@ async def upload_photo(message: types.Message):
 # Пост о главном увлечении
 @router.message(Command('hobby'))
 async def hobby_story(message: types.Message):
-    text = 'История о хобби'
-    image = FSInputFile('')
+    text = 'Как ни странно, но в старших классах и на первых курсах института моим основным увлечением, позволяющим ' \
+           'хорошо отдохнуть и провести время с пользой, был страйкбол.\n' \
+           'Страйкбол - это военно-тактическая игра, целью которой является популяризация патриотических настроений в' \
+           'обществе, совершенствование своих физических и моральных качеств, а также сплачивание коллективов.\n' \
+           'Страйкбол - игра друзей :)'
+    image = FSInputFile('./photo/hobby.png')
     await message.answer_photo(image, caption=text)
 
 
 # Что такое ChatGPT
-@router.message(Command('gpt'))
+@router.message(F.text.lower() == "что такое chatgpt")
 async def what_is_gpt(message: types.Message):
-    voice = '123'
+    voice = FSInputFile('./voices/chatGPT.ogg')
     await message.answer_voice(voice)
 
 
 # Отличие SQL от NoSQL
-@router.message(Command('dif'))
+@router.message(F.text.lower() == "отличие sql от nosql")
 async def difference(message: types.Message):
-    voice = '123'
+    voice = FSInputFile('./voices/sql.ogg')
     await message.answer_voice(voice)
 
 
 # Ода о первой любви
-@router.message(Command('love'))
+@router.message(F.text.lower() == "ода о первой любви")
 async def love_story(message: types.Message):
-    voice = '123'
+    voice = FSInputFile('./voices/love.ogg')
     await message.answer_voice(voice)
 
 
 # ссылка на репо
-@router.message(Command('contact'))
+@router.message(F.voice)
 async def contact(message: types.Message):
-    ...
+    link = 'Отличный выбор! Вот ссылка на мой GitHub:\nhttps://github.com/MaxVed110/about_me_tg_bot'
+    await message.answer(link)

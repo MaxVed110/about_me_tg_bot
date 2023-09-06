@@ -4,7 +4,10 @@ from aiogram import Bot, Dispatcher
 
 
 async def main():
-    bot = Bot(token='6368801567:AAHqn6pSQW4cnDeSKXnWU40g4ctDBim0UQU')
+    with open('token.txt', 'r') as f:
+        token = f.read()
+
+    bot = Bot(token=token)
 
     dp = Dispatcher()
     dp.include_router(handlers.router)
